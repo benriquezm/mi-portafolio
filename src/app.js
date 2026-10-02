@@ -11,33 +11,38 @@ router.setRoutes([
     path: '/',
     component: 'app-layout',
     children: [
-      // Mapeo dinámico controlado por hashes
       { path: '/', component: 'page-home' },
       { path: 'casos', component: 'page-cases' },
     ]
   }
 ]);
 
-// Manejador global senior para traducir el Hash en navegación para el Router
 const handleHashChange = () => {
   const hash = window.location.hash;
-  
-  // Si el hash apunta a la sección interna de filosofía, forzamos al router a quedarse en Home
-  if (hash.startsWith('#filosofia')) {
-    Router.go('/');
-    // Damos un pequeño respiro para que el DOM de page-home se renderice y se mueva al ID
+
+  // Interceptor click of user in filosofia
+  if (hash === '#filosofia') {
+    // if Pages Case, return root first
+    if (window.location.pathname.includes('casos')) {
+      Router.go('/');
+    }
+    
+    // Wait an instant for DOM ready
     setTimeout(() => {
-      const element = document.querySelector('app-layout')?.shadowRoot
-        ?.querySelector('page-home')?.shadowRoot
-        ?.getElementById('filosofia');
-      if (element) element.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+      const layout = document.querySelector('app-layout');
+      const homePage = layout?.shadowRoot?.querySelector('page-home');
+      const filosofiaSec = homePage?.shadowRoot?.getElementById('filosofia');
+      
+      if (filosofiaSec) {
+        filosofiaSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 150);
     return;
   }
 
-  // Traducción de rutas base: '#/casos' -> '/casos'
+  // Normal router of pages independents for the router
   const targetPath = hash.replace(/^#\/?/, '/') || '/';
-  if (router.baseUrl + targetPath !== window.location.pathname) {
+  if (!hash.includes('filosofia') && router.baseUrl + targetPath !== window.location.pathname) {
     Router.go(targetPath);
   }
 };
